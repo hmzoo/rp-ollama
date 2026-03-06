@@ -26,7 +26,7 @@ Pour que votre endpoint fonctionne, configurez ces variables sur RunPod.io :
 │ (si volume persistant)    │                                 │
 └───────────────────────────┴─────────────────────────────────┘
 
-⚠️  IMPORTANT: DEFAULT_MODEL est OBLIGATOIRE pour télécharger le modèle
+ℹ️  Les modèles sont téléchargés automatiquement à la première requête
 
 5. Sauvegardez et redémarrez les workers
 

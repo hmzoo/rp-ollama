@@ -1,8 +1,21 @@
 # Configuration du Volume Persistant RunPod
 
+## � Auto-téléchargement des Modèles
+
+Les modèles sont **téléchargés automatiquement** à la première requête qui les utilise :
+- ✅ Aucune pré-configuration nécessaire
+- ✅ Utilisez n'importe quel modèle de [Ollama Library](https://ollama.ai/library)
+- 💾 Modèles persistés automatiquement sur le volume
+
+**Exemple** : 
+```bash
+# Première requête avec "tinyllama" → téléchargement auto (~30s)
+# Requêtes suivantes avec "tinyllama" → utilise le cache (~2s)
+```
+
 ## 📦 Stockage des Modèles
 
-Ce projet est configuré pour utiliser un **volume persistant** sur RunPod, évitant ainsi le re-téléchargement des modèles à chaque lancement.
+Un **volume persistant** évite le re-téléchargement des modèles entre les redémarrages de workers.
 
 ### Configuration Automatique
 
@@ -52,16 +65,18 @@ Les modèles Ollama sont automatiquement stockés dans `/runpod-volume/models` g
    - Container Disk : 20 GB (système + code)
    - Network Volume : `/runpod-volume` (modèles persistants)
 
-3. **Variables d'environnement** :
+3. **Variables d'environnement** (optionnelles) :
    ```bash
-   RUNPOD_API_KEY=your_secret_key
-   DEFAULT_MODEL=llama3.2:3b  # Ou tinyllama, llama3.2-vision
-   DEFAULT_VISION_MODEL=llama3.2-vision  # Optionnel
+   RUNPOD_API_KEY=your_secret_key  # Sécurité (optionnel)
+   DEFAULT_MODEL=llama3.2:3b  # Model par défaut si non spécifié dans requête
+   DEFAULT_VISION_MODEL=llama3.2-vision  # Model vision par défaut
    ```
 
-### Pré-charger des Modèles
+### Pré-charger des Modèles (OPTIONNEL)
 
-Pour pré-charger plusieurs modèles au premier lancement :
+Les modèles sont maintenant **auto-téléchargés à la demande**. 
+
+Si vous souhaitez quand même pré-charger des modèles au démarrage pour éviter l'attente à la première requête, configurez :
 
 ```bash
 # Dans l'environnement RunPod
@@ -69,7 +84,7 @@ DEFAULT_MODEL=llama3.2:3b
 DEFAULT_VISION_MODEL=llama3.2-vision
 ```
 
-Les modèles seront téléchargés au premier démarrage puis réutilisés.
+**Note** : Sans ces variables, les modèles seront téléchargés automatiquement lors de la première utilisation.
 
 ### Vérifier les Modèles Disponibles
 

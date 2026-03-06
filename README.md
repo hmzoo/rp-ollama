@@ -18,8 +18,15 @@ Déploiement serverless d'Ollama sur RunPod.io pour exécuter des modèles LLM.
 Copiez `.env.example` vers `.env` et configurez :
 
 ```bash
-# Modèle par défaut
+# Modèle par défaut (OPTIONNEL - utilisé si "model" n'est pas spécifié dans la requête)
+# Les modèles sont téléchargés automatiquement à la première utilisation
 DEFAULT_MODEL=llama3.2:3b
+
+# Modèle de vision par défaut
+DEFAULT_VISION_MODEL=llama3.2-vision
+
+# Patterns pour détecter les modèles de vision (séparés par virgules)
+VISION_MODELS_PATTERNS=llava,bakllava,llama3.2-vision,moondream,cogvlm,minicpm-v,qwen,qwen2-vl,qwen-vl,pixtral,internvl,molmo,video,vision
 
 # Paramètres par défaut
 DEFAULT_TEMPERATURE=0.7
@@ -28,6 +35,29 @@ DEFAULT_MAX_TOKENS=512
 # Sécurité (optionnel mais recommandé)
 RUNPOD_API_KEY=your_secret_key
 ```
+
+### 🔍 Modèles de Vision
+
+Les modèles de vision sont détectés automatiquement grâce à la variable `VISION_MODELS_PATTERNS`. 
+
+**Modèles supportés par défaut** : llava, bakllava, llama3.2-vision, minicpm-v, qwen, pixtral, internvl, molmo, etc.
+
+**Auto-détection** : Tout modèle contenant "vision", "-vl" ou "vl-" est automatiquement reconnu comme modèle de vision.
+
+**Ajouter des patterns personnalisés** :
+```bash
+# Dans .env
+VISION_MODELS_PATTERNS=llava,minicpm-v,mon-modele-custom,autre-pattern
+```
+
+### 🚀 Auto-téléchargement des modèles
+
+Les modèles sont **téléchargés automatiquement** à la première requête :
+- ✅ Aucune configuration préalable nécessaire
+- ✅ Utilisez n'importe quel modèle disponible sur [Ollama Library](https://ollama.ai/library)
+- ⏱️ Premier appel : ~30-90s (téléchargement + génération)
+- ⚡ Appels suivants : ~2-5s (génération uniquement)
+- 💾 Modèles persistés automatiquement sur `/runpod-volume/models`
 
 ### Configuration sur RunPod
 

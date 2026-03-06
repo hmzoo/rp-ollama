@@ -13,12 +13,24 @@ DEFAULT_MAX_TOKENS = int(os.getenv("DEFAULT_MAX_TOKENS", "512"))
 API_KEY = os.getenv("RUNPOD_API_KEY", "")  # Clé API pour sécuriser l'endpoint
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 
-# Modèles de vision supportés
-VISION_MODELS = [
-    "llava", "llava:7b", "llava:13b", "llava:34b",
-    "bakllava", "llama3.2-vision", "llama3.2-vision:11b",
-    "moondream", "cogvlm"
-]
+# Modèles de vision supportés (patterns pour détection depuis .env)
+VISION_MODELS_DEFAULT = "llava,bakllava,llama3.2-vision,moondream,cogvlm,minicpm-v,qwen,qwen2-vl,qwen-vl,pixtral,internvl,molmo,video,vision"
+VISION_MODELS = os.getenv("VISION_MODELS_PATTERNS", VISION_MODELS_DEFAULT).split(",")
+VISION_MODELS = [vm.strip() for vm in VISION_MODELS]  # Nettoyer les espaces
+
+def is_vision_model(model: str) -> bool:
+    """
+    Vérifie si le modèle est un modèle de vision.
+    Détecte par patterns ou si le mot 'vision' est dans le nom.
+    """
+    model_lower = model.lower()
+    # Vérifier les patterns connus
+    if any(vm in model_lower for vm in VISION_MODELS):
+        return True
+    # Détection générique : si "vision" ou "vl" (vision-language) dans le nom
+    if "vision" in model_lower or "-vl" in model_lower or "vl-" in model_lower:
+        return True
+    return False
 
 def validate_api_key(inp: Dict[str, Any]) -> bool:
     """Valide la clé API si elle est configurée"""
@@ -27,10 +39,6 @@ def validate_api_key(inp: Dict[str, Any]) -> bool:
     
     provided_key = inp.get("api_key", "")
     return provided_key == API_KEY
-
-def is_vision_model(model: str) -> bool:
-    """Vérifie si le modèle est un modèle de vision"""
-    return any(vm in model.lower() for vm in VISION_MODELS)
 
 def check_and_pull_model(model: str) -> Dict[str, Any]:
     """
