@@ -23,6 +23,7 @@ RUN chmod +x start.sh
 
 # Environment variables with defaults
 ENV DEFAULT_MODEL=llama3.2:3b
+ENV DEFAULT_VISION_MODEL=llama3.2-vision
 ENV DEFAULT_TEMPERATURE=0.7
 ENV DEFAULT_MAX_TOKENS=512
 ENV OLLAMA_HOST=http://localhost:11434

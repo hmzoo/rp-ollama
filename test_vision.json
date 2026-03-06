@@ -1,0 +1,12 @@
+{
+  "input": {
+    "api_key": "your_secret_api_key_here",
+    "model": "llama3.2-vision",
+    "prompt": "Décris cette image en détail",
+    "images": [
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+    ],
+    "temperature": 0.3,
+    "max_tokens": 512
+  }
+}

@@ -6,7 +6,8 @@ Déploiement serverless d'Ollama sur RunPod.io pour exécuter des modèles LLM.
 
 - ✅ Configuration via variables d'environnement
 - ✅ Authentification par API key
-- ✅ Support de tous les modèles Ollama
+- ✅ Support de tous les modèles Ollama (texte + vision)
+- ✅ **Analyse d'images avec modèles de vision** (llama3.2-vision, llava, etc.)
 - ✅ Gestion des erreurs robuste
 - ✅ Métriques de performance (durée, tokens, etc.)
 
@@ -121,7 +122,130 @@ curl -X POST https://api.runpod.ai/v2/YOUR_ENDPOINT_ID/runsync \
 }
 ```
 
-## 🔒 Sécurité
+## �️ Modèles de Vision (Analyse d'images)
+
+Les modèles de vision permettent d'analyser des images et de répondre à des questions sur leur contenu.
+
+### Modèles de vision supportés
+
+- `llama3.2-vision` (recommandé) - Modèle multimodal de Meta
+- `llava:7b`, `llava:13b`, `llava:34b` - LLaVA (Large Language and Vision Assistant)
+- `bakllava` - Version améliorée de LLaVA
+- `moondream` - Modèle compact et rapide
+- `cogvlm` - Modèle de vision avancé
+
+### Format de requête pour l'analyse d'images
+
+```json
+{
+  "input": {
+    "api_key": "your_secret_key",
+    "model": "llama3.2-vision",
+    "prompt": "Décris cette image en détail",
+    "images": ["base64_encoded_image_data"],
+    "temperature": 0.3,
+    "max_tokens": 512
+  }
+}
+```
+
+### Formats d'images supportés
+
+1. **Base64 pur** : `"iVBORw0KGgoAAAANSUhEUgAAAA..."`
+2. **Data URI** : `"data:image/png;base64,iVBORw0KGgo..."`
+3. **URL** : `"https://example.com/image.jpg"` (téléchargée et convertie automatiquement)
+
+### Exemple Python avec image locale
+
+```python
+import requests
+import base64
+
+# Charger et encoder l'image
+with open("photo.jpg", "rb") as img_file:
+    image_base64 = base64.b64encode(img_file.read()).decode('utf-8')
+
+url = "https://api.runpod.ai/v2/YOUR_ENDPOINT_ID/runsync"
+
+payload = {
+    "input": {
+        "api_key": "your_secret_key",
+        "model": "llama3.2-vision",
+        "prompt": "Que vois-tu sur cette image?",
+        "images": [image_base64],
+        "temperature": 0.3,
+        "max_tokens": 512
+    }
+}
+
+headers = {
+    "Authorization": "Bearer YOUR_RUNPOD_TOKEN",
+    "Content-Type": "application/json"
+}
+
+response = requests.post(url, json=payload, headers=headers)
+result = response.json()
+print(result["output"]["response"])
+```
+
+### Utiliser le client vision
+
+```bash
+# Configurer les variables d'environnement
+export RUNPOD_ENDPOINT_ID="votre-endpoint-id"
+export RUNPOD_TOKEN="votre-token"
+export RUNPOD_API_KEY="votre-cle-secrete"
+
+# Analyser une image locale
+./vision_client.py photo.jpg "Décris cette image"
+
+# Analyser une image depuis une URL
+./vision_client.py https://example.com/image.png "Que vois-tu?"
+```
+
+### Exemples de prompts pour l'analyse d'images
+
+```python
+# Description générale
+"Décris cette image en détail"
+
+# Question spécifique
+"Combien de personnes sont présentes sur cette photo?"
+
+# Analyse technique
+"Identifie tous les objets visibles dans cette image"
+
+# Lecture de texte (OCR)
+"Lis et transcris tout le texte présent dans cette image"
+
+# Analyse de graphique
+"Explique ce que montre ce graphique"
+
+# Multiple images
+{
+    "images": ["image1_base64", "image2_base64"],
+    "prompt": "Compare ces deux images et décris leurs différences"
+}
+```
+
+### Configuration pour les modèles de vision
+
+Ajoutez cette variable d'environnement sur RunPod :
+
+```bash
+DEFAULT_VISION_MODEL=llama3.2-vision
+```
+
+### Recommandations GPU pour la vision
+
+| Modèle | GPU recommandé | VRAM requise |
+|--------|----------------|--------------|
+| llama3.2-vision | RTX 4090 (24GB) | ~12-16GB |
+| llava:7b | RTX 3090 (24GB) | ~10GB |
+| llava:13b | A6000 (48GB) | ~18GB |
+| moondream | RTX 3090 (24GB) | ~8GB |
+
+## �🔒 Sécurité
 
 ### Activer l'authentification
 
