@@ -26,7 +26,10 @@ ENV DEFAULT_TEMPERATURE=0.7
 ENV DEFAULT_MAX_TOKENS=512
 ENV OLLAMA_HOST=http://localhost:11434
 
-# Expose Ollama port (optional, for debugging)
+# Expose Ollama port
 EXPOSE 11434
 
+# Override the default CMD from ollama/ollama image
+# The base image normally runs "ollama serve", we need our custom start script
+ENTRYPOINT []
 CMD ["./start.sh"]
