@@ -1,0 +1,18 @@
+# Configuration pour RunPod CLI
+# Voir: https://docs.runpod.io/serverless/workers/development/local-testing
+
+[project]
+name = "rp-ollama"
+description = "Serveur Ollama serverless pour RunPod"
+version = "1.0.0"
+
+[build]
+dockerfile = "Dockerfile"
+
+[env]
+# Variables d'environnement pour les tests locaux
+DEFAULT_MODEL = "llama3.2:3b"
+DEFAULT_TEMPERATURE = "0.7"
+DEFAULT_MAX_TOKENS = "512"
+OLLAMA_HOST = "http://localhost:11434"
+# RUNPOD_API_KEY = "your_test_key"  # Décommentez pour tester avec authentification
