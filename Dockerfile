@@ -1,40 +1,27 @@
 FROM ollama/ollama:latest
 
-# Install Python and pip with build dependencies
+# Install Python and pip
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
-    python3-dev \
-    build-essential \
     curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Upgrade pip to latest version
-RUN python3 -m pip install --upgrade pip setuptools wheel
-
-# Create working directory
-WORKDIR /app
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN python3 -m pip install --no-cache-dir -r requirements.txt
+    && rm -rf /var/lib/apt/lists/* && \
+    pip3 install --no-cache-dir runpod requests
 
 # Copy application files
-COPY handler.py .
-COPY start.sh .
-RUN chmod +x start.sh
+COPY handler.py /app/handler.py
+COPY start.sh /app/start.sh
+RUN chmod +x /app/start.sh
 
-# Environment variables with defaults
+WORKDIR /app
+
+# Environment variables
 ENV DEFAULT_MODEL=llama3.2:3b
 ENV DEFAULT_VISION_MODEL=llama3.2-vision
 ENV DEFAULT_TEMPERATURE=0.7
 ENV DEFAULT_MAX_TOKENS=512
 ENV OLLAMA_HOST=http://localhost:11434
 
-# Expose Ollama port
-EXPOSE 11434
-
-# Override the default CMD from ollama/ollama image
-# The base image normally runs "ollama serve", we need our custom start script
+# Override base image entrypoint
 ENTRYPOINT []
 CMD ["./start.sh"]
