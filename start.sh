@@ -18,4 +18,4 @@ if [ -n "$DEFAULT_MODEL" ]; then
 fi
 
 echo "Starting RunPod handler..."
-python -u handler.py
+python3 -u handler.py

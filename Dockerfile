@@ -1,21 +1,25 @@
-FROM python:3.11-slim
+FROM ubuntu:22.04
 
-# Install system dependencies
+# Éviter les prompts interactifs
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system dependencies and Python
 RUN apt-get update && apt-get install -y \
     curl \
     ca-certificates \
+    python3 \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Ollama directly (binary download instead of install script)
-RUN curl -L https://ollama.com/download/ollama-linux-amd64 -o /usr/local/bin/ollama && \
-    chmod +x /usr/local/bin/ollama
+# Install Ollama using official script
+RUN curl -fsSL https://ollama.com/install.sh | sh
 
 # Create working directory
 WORKDIR /app
 
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Copy application files
 COPY handler.py .
