@@ -1,9 +1,9 @@
 {
   "input": {
-    "api_key": "your_secret_api_key_here",
+    "api_key": "test_key_local",
     "model": "llama3.2:3b",
-    "prompt": "Explique les interruptions ESP32",
-    "temperature": 0.1,
-    "max_tokens": 256
+    "prompt": "Explain what RunPod is in 2 sentences.",
+    "temperature": 0.7,
+    "max_tokens": 100
   }
 }

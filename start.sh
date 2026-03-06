@@ -44,4 +44,4 @@ if [ -n "$DEFAULT_VISION_MODEL" ] && [ "$DEFAULT_VISION_MODEL" != "$DEFAULT_MODE
 fi
 
 echo "🐍 Starting RunPod handler..."
-python3 -u handler.py
+python3.11 -u handler.py
