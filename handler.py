@@ -32,6 +32,48 @@ def is_vision_model(model: str) -> bool:
     """Vérifie si le modèle est un modèle de vision"""
     return any(vm in model.lower() for vm in VISION_MODELS)
 
+def check_and_pull_model(model: str) -> Dict[str, Any]:
+    """
+    Vérifie si le modèle existe, sinon le télécharge automatiquement.
+    Retourne un dict avec 'success' et optionnellement 'error'.
+    """
+    try:
+        # Vérifier si le modèle existe déjà
+        resp = requests.get(f"{OLLAMA_HOST}/api/tags", timeout=10)
+        if resp.status_code == 200:
+            models = resp.json().get("models", [])
+            model_names = [m["name"] for m in models]
+            
+            # Vérifier avec et sans tag :latest
+            model_base = model.split(':')[0]
+            if model in model_names or f"{model_base}:latest" in model_names or any(m.startswith(model_base + ":") for m in model_names):
+                return {"success": True, "message": f"Model {model} already available"}
+        
+        # Le modèle n'existe pas, le télécharger
+        print(f"📥 Model {model} not found, pulling...")
+        pull_resp = requests.post(
+            f"{OLLAMA_HOST}/api/pull",
+            json={"name": model, "stream": False},
+            timeout=600  # 10 minutes pour le téléchargement
+        )
+        
+        if pull_resp.status_code == 200:
+            print(f"✅ Model {model} pulled successfully")
+            return {"success": True, "message": f"Model {model} pulled successfully"}
+        else:
+            error_msg = f"Failed to pull model {model}: {pull_resp.text}"
+            print(f"❌ {error_msg}")
+            return {"success": False, "error": error_msg}
+            
+    except requests.exceptions.Timeout:
+        error_msg = f"Timeout while pulling model {model}"
+        print(f"⏱️ {error_msg}")
+        return {"success": False, "error": error_msg}
+    except Exception as e:
+        error_msg = f"Error checking/pulling model {model}: {str(e)}"
+        print(f"❌ {error_msg}")
+        return {"success": False, "error": error_msg}
+
 def validate_base64_image(image_data: str) -> bool:
     """Valide qu'une chaîne est bien une image base64"""
     try:
@@ -124,6 +166,14 @@ def handler(job):
         # Si pas de modèle spécifié, choisir selon la présence d'images
         if not model:
             model = DEFAULT_VISION_MODEL if has_images else DEFAULT_MODEL
+        
+        # Vérifier et télécharger le modèle si nécessaire
+        pull_result = check_and_pull_model(model)
+        if not pull_result["success"]:
+            return {
+                "error": f"Model unavailable: {pull_result.get('error', 'Unknown error')}",
+                "status_code": 503
+            }
         
         # Construction de la requête Ollama
         ollama_req = {
