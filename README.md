@@ -92,6 +92,7 @@ Pour **éviter de re-télécharger les modèles** à chaque lancement :
     "api_key": "your_secret_key",
     "prompt": "Explique les interruptions ESP32",
     "model": "llama3.2:3b",
+    "system": "Tu es un expert en électronique embarquée",
     "temperature": 0.7,
     "max_tokens": 512
   }
@@ -106,6 +107,7 @@ Pour **éviter de re-télécharger les modèles** à chaque lancement :
 
 - `api_key` : Clé API pour l'authentification (requis si `RUNPOD_API_KEY` est défini)
 - `model` : Modèle à utiliser (défaut : `DEFAULT_MODEL`)
+- `system` : System prompt pour définir le comportement du modèle
 - `temperature` : Contrôle la créativité (0.0 - 1.0, défaut : 0.7)
 - `max_tokens` : Nombre maximum de tokens à générer (défaut : 512)
 - `top_p` : Nucleus sampling (0.0 - 1.0)
@@ -124,6 +126,7 @@ payload = {
         "api_key": "your_secret_key",
         "prompt": "Qu'est-ce que l'intelligence artificielle?",
         "model": "llama3.2:3b",
+        "system": "Tu es un professeur d'informatique pédagogue",
         "temperature": 0.7,
         "max_tokens": 256
     }

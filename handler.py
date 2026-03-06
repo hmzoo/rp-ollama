@@ -136,6 +136,7 @@ def handler(job):
         "api_key": "votre_cle_api",  # Optionnel si RUNPOD_API_KEY n'est pas défini
         "model": "llama3.2:3b",      # Optionnel, utilise DEFAULT_MODEL si absent
         "prompt": "votre question",   # Requis
+        "system": "You are a helpful assistant",  # Optionnel, system prompt
         "temperature": 0.7,           # Optionnel
         "max_tokens": 512             # Optionnel
     }
@@ -145,6 +146,7 @@ def handler(job):
         "api_key": "votre_cle_api",
         "model": "llama3.2-vision",   # Modèle de vision
         "prompt": "Décris cette image",
+        "system": "You are an expert image analyst",  # Optionnel
         "images": ["base64_image_data"] ou "base64_image_data",  # Image(s) en base64
         "temperature": 0.7,
         "max_tokens": 512
@@ -193,6 +195,10 @@ def handler(job):
                 "num_predict": inp.get("max_tokens", DEFAULT_MAX_TOKENS)
             }
         }
+        
+        # Ajout du system prompt si fourni
+        if "system" in inp:
+            ollama_req["system"] = inp["system"]
         
         # Ajout d'options supplémentaires si fournies
         if "top_p" in inp:
