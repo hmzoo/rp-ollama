@@ -6,8 +6,9 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Ollama
-RUN curl -fsSL https://ollama.ai/install.sh | sh
+# Install Ollama directly (binary download instead of install script)
+RUN curl -L https://ollama.com/download/ollama-linux-amd64 -o /usr/local/bin/ollama && \
+    chmod +x /usr/local/bin/ollama
 
 # Create working directory
 WORKDIR /app
