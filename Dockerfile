@@ -1,23 +1,33 @@
-FROM runpod/pylang:3.11-1.54.0
+FROM python:3.11-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Ollama
 RUN curl -fsSL https://ollama.ai/install.sh | sh
 
-# Copier les fichiers
-COPY . /runpod/
-WORKDIR /runpod
+# Create working directory
+WORKDIR /app
 
-# Installer les dépendances Python
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Variable d'environnement pour le modèle par défaut
+# Copy application files
+COPY handler.py .
+COPY start.sh .
+RUN chmod +x start.sh
+
+# Environment variables with defaults
 ENV DEFAULT_MODEL=llama3.2:3b
 ENV DEFAULT_TEMPERATURE=0.7
 ENV DEFAULT_MAX_TOKENS=512
 ENV OLLAMA_HOST=http://localhost:11434
 
-# Script de démarrage
-COPY start.sh /runpod/start.sh
-RUN chmod +x /runpod/start.sh
+# Expose Ollama port (optional, for debugging)
+EXPOSE 11434
 
-CMD ["/runpod/start.sh"]
+CMD ["./start.sh"]
