@@ -45,3 +45,4 @@ fi
 
 echo "🐍 Starting RunPod handler..."
 python3.11 -u handler.py
+
