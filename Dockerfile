@@ -18,4 +18,7 @@ ENV DEFAULT_TEMPERATURE=0.7
 ENV DEFAULT_MAX_TOKENS=512
 ENV OLLAMA_HOST=http://localhost:11434
 
+# Store Ollama models in the persistent volume
+ENV OLLAMA_MODELS=/runpod-volume/models
+
 CMD ["./start.sh"]

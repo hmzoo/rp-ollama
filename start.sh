@@ -3,6 +3,12 @@ set -e
 
 echo "🚀 Starting Ollama server..."
 
+# Créer le répertoire pour les modèles persistants si nécessaire
+if [ ! -d "/runpod-volume/models" ]; then
+    echo "📁 Creating persistent models directory..."
+    mkdir -p /runpod-volume/models
+fi
+
 # Démarrer Ollama en arrière-plan
 ollama serve > /tmp/ollama.log 2>&1 &
 OLLAMA_PID=$!
@@ -33,14 +39,24 @@ echo "✅ Ollama is ready!"
 
 # Charger le modèle par défaut si spécifié
 if [ -n "$DEFAULT_MODEL" ]; then
-    echo "📥 Pulling default text model: $DEFAULT_MODEL"
-    ollama pull "$DEFAULT_MODEL" || echo "⚠️  Warning: Failed to pull $DEFAULT_MODEL"
+    # Vérifier si le modèle existe déjà
+    if ollama list | grep -q "$DEFAULT_MODEL"; then
+        echo "✅ Model $DEFAULT_MODEL already exists (using cached version)"
+    else
+        echo "📥 Pulling default text model: $DEFAULT_MODEL"
+        ollama pull "$DEFAULT_MODEL" || echo "⚠️  Warning: Failed to pull $DEFAULT_MODEL"
+    fi
 fi
 
 # Charger le modèle de vision par défaut si spécifié et différent
 if [ -n "$DEFAULT_VISION_MODEL" ] && [ "$DEFAULT_VISION_MODEL" != "$DEFAULT_MODEL" ]; then
-    echo "📥 Pulling default vision model: $DEFAULT_VISION_MODEL"
-    ollama pull "$DEFAULT_VISION_MODEL" || echo "⚠️  Warning: Failed to pull $DEFAULT_VISION_MODEL"
+    # Vérifier si le modèle existe déjà
+    if ollama list | grep -q "$DEFAULT_VISION_MODEL"; then
+        echo "✅ Model $DEFAULT_VISION_MODEL already exists (using cached version)"
+    else
+        echo "📥 Pulling default vision model: $DEFAULT_VISION_MODEL"
+        ollama pull "$DEFAULT_VISION_MODEL" || echo "⚠️  Warning: Failed to pull $DEFAULT_VISION_MODEL"
+    fi
 fi
 
 echo "🐍 Starting RunPod handler..."

@@ -34,7 +34,23 @@ RUNPOD_API_KEY=your_secret_key
 1. Créez un nouveau endpoint serverless sur [RunPod.io](https://runpod.io)
 2. Configurez votre image Docker depuis ce dépôt
 3. Ajoutez les variables d'environnement dans l'interface RunPod
-4. Déployez !
+4. **Recommandé** : Attachez un Network Volume à `/runpod-volume` pour persister les modèles
+5. Déployez !
+
+### 💾 Volume Persistant (Recommandé)
+
+Pour **éviter de re-télécharger les modèles** à chaque lancement :
+
+1. **Créez un Network Volume** dans RunPod (50 GB minimum)
+2. **Attachez-le à votre endpoint** sur `/runpod-volume`
+3. Les modèles seront automatiquement stockés dans `/runpod-volume/models`
+
+**Avantages** :
+- ✅ Démarrage rapide (pas de re-téléchargement)
+- ✅ Économie de bande passante
+- ✅ Stockage persistant de plusieurs modèles
+
+📚 **Voir [RUNPOD_VOLUME.md](RUNPOD_VOLUME.md) pour plus de détails**
 
 ## 🔧 Utilisation
 
