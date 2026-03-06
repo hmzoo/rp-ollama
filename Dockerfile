@@ -1,18 +1,11 @@
-FROM ubuntu:22.04
+FROM ollama/ollama:latest
 
-# Éviter les prompts interactifs
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install system dependencies and Python
+# Install Python and pip
 RUN apt-get update && apt-get install -y \
-    curl \
-    ca-certificates \
     python3 \
     python3-pip \
+    curl \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Ollama using official script
-RUN curl -fsSL https://ollama.com/install.sh | sh
 
 # Create working directory
 WORKDIR /app
