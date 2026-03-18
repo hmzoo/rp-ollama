@@ -10,7 +10,6 @@ RUN pip install runpod requests
 WORKDIR /app
 COPY handler.py .
 COPY start.sh .
-COPY test_input.json .
 RUN chmod +x start.sh
 
 # Environment variables
