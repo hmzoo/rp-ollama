@@ -42,6 +42,12 @@ LOG_RESPONSE_PREVIEW_CHARS=240
 # true pour logger le payload complet reçu (attention données sensibles)
 LOG_RAW_PAYLOAD=false
 
+# Retry interne si Ollama renvoie une réponse vide
+# Nombre de retries max (capé à 5 par le code)
+EMPTY_RESPONSE_MAX_RETRIES=5
+# Délai entre retries en secondes
+EMPTY_RESPONSE_RETRY_DELAY_SECONDS=0.0
+
 # Sécurité (optionnel mais recommandé)
 RUNPOD_API_KEY=your_secret_key
 ```

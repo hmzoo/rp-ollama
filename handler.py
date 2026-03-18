@@ -20,6 +20,8 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 LOG_REQUEST_PREVIEW_CHARS = int(os.getenv("LOG_REQUEST_PREVIEW_CHARS", "180"))
 LOG_RESPONSE_PREVIEW_CHARS = int(os.getenv("LOG_RESPONSE_PREVIEW_CHARS", "240"))
 LOG_RAW_PAYLOAD = os.getenv("LOG_RAW_PAYLOAD", "false").lower() in ("1", "true", "yes")
+EMPTY_RESPONSE_MAX_RETRIES = min(max(int(os.getenv("EMPTY_RESPONSE_MAX_RETRIES", "5")), 0), 5)
+EMPTY_RESPONSE_RETRY_DELAY_SECONDS = float(os.getenv("EMPTY_RESPONSE_RETRY_DELAY_SECONDS", "0.0"))
 
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL, logging.INFO),
@@ -373,41 +375,97 @@ def handler(job):
                     "status_code": 400
                 }
         
-        # Requête vers Ollama
-        log_event(
-            "info",
-            "ollama_request_started",
-            request_id,
-            model=model,
-            has_images=has_images,
-            timeout_seconds=300,
-            ollama_host=OLLAMA_HOST,
-        )
-        resp = requests.post(
-            f"{OLLAMA_HOST}/api/generate",
-            json=ollama_req,
-            timeout=300  # 5 minutes timeout
-        )
-        
-        if resp.status_code == 200:
-            result = resp.json()
-            response_text = result.get("response", "")
-            elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
+        # Requête vers Ollama avec retry si la réponse est vide
+        total_attempts = EMPTY_RESPONSE_MAX_RETRIES + 1
+        for attempt in range(1, total_attempts + 1):
             log_event(
                 "info",
-                "request_succeeded",
+                "ollama_request_started",
                 request_id,
                 model=model,
-                elapsed_ms=elapsed_ms,
-                prompt_eval_count=result.get("prompt_eval_count"),
-                eval_count=result.get("eval_count"),
-                total_duration_ns=result.get("total_duration"),
-                load_duration_ns=result.get("load_duration"),
-                response_chars=len(response_text),
-                response_preview=safe_preview(response_text, LOG_RESPONSE_PREVIEW_CHARS),
+                has_images=has_images,
+                timeout_seconds=300,
+                ollama_host=OLLAMA_HOST,
+                attempt=attempt,
+                max_attempts=total_attempts,
             )
+            resp = requests.post(
+                f"{OLLAMA_HOST}/api/generate",
+                json=ollama_req,
+                timeout=300  # 5 minutes timeout
+            )
+
+            if resp.status_code != 200:
+                elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
+                log_event(
+                    "error",
+                    "request_failed",
+                    request_id,
+                    model=model,
+                    status_code=resp.status_code,
+                    elapsed_ms=elapsed_ms,
+                    attempt=attempt,
+                    max_attempts=total_attempts,
+                    ollama_error_preview=safe_preview(resp.text, LOG_RESPONSE_PREVIEW_CHARS),
+                )
+                return {
+                    "error": f"Ollama API error: {resp.text}",
+                    "status_code": resp.status_code
+                }
+
+            result = resp.json()
+            response_text = result.get("response", "")
+            response_chars = len(response_text)
+
+            # Retry uniquement quand la réponse est vide
+            if response_chars == 0 and attempt < total_attempts:
+                log_event(
+                    "warning",
+                    "empty_response_retry",
+                    request_id,
+                    model=model,
+                    attempt=attempt,
+                    max_attempts=total_attempts,
+                    retries_remaining=total_attempts - attempt,
+                )
+                if EMPTY_RESPONSE_RETRY_DELAY_SECONDS > 0:
+                    time.sleep(EMPTY_RESPONSE_RETRY_DELAY_SECONDS)
+                continue
+
+            elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
+            if response_chars == 0:
+                log_event(
+                    "warning",
+                    "request_succeeded_with_empty_response",
+                    request_id,
+                    model=model,
+                    elapsed_ms=elapsed_ms,
+                    attempt=attempt,
+                    max_attempts=total_attempts,
+                    prompt_eval_count=result.get("prompt_eval_count"),
+                    eval_count=result.get("eval_count"),
+                    total_duration_ns=result.get("total_duration"),
+                    load_duration_ns=result.get("load_duration"),
+                )
+            else:
+                log_event(
+                    "info",
+                    "request_succeeded",
+                    request_id,
+                    model=model,
+                    elapsed_ms=elapsed_ms,
+                    attempt=attempt,
+                    max_attempts=total_attempts,
+                    prompt_eval_count=result.get("prompt_eval_count"),
+                    eval_count=result.get("eval_count"),
+                    total_duration_ns=result.get("total_duration"),
+                    load_duration_ns=result.get("load_duration"),
+                    response_chars=response_chars,
+                    response_preview=safe_preview(response_text, LOG_RESPONSE_PREVIEW_CHARS),
+                )
+
             return {
-                "response": result["response"],
+                "response": result.get("response", ""),
                 "model": model,
                 "done": result.get("done", True),
                 "context": result.get("context", []),
@@ -415,22 +473,9 @@ def handler(job):
                 "load_duration": result.get("load_duration"),
                 "prompt_eval_count": result.get("prompt_eval_count"),
                 "eval_count": result.get("eval_count"),
-                "is_vision": has_images
-            }
-        else:
-            elapsed_ms = round((time.perf_counter() - start_time) * 1000, 2)
-            log_event(
-                "error",
-                "request_failed",
-                request_id,
-                model=model,
-                status_code=resp.status_code,
-                elapsed_ms=elapsed_ms,
-                ollama_error_preview=safe_preview(resp.text, LOG_RESPONSE_PREVIEW_CHARS),
-            )
-            return {
-                "error": f"Ollama API error: {resp.text}",
-                "status_code": resp.status_code
+                "is_vision": has_images,
+                "attempt": attempt,
+                "max_attempts": total_attempts
             }
             
     except requests.exceptions.Timeout:
