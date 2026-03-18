@@ -32,6 +32,16 @@ VISION_MODELS_PATTERNS=llava,bakllava,llama3.2-vision,moondream,cogvlm,minicpm-v
 DEFAULT_TEMPERATURE=0.7
 DEFAULT_MAX_TOKENS=512
 
+# Logging du handler (optionnel)
+# DEBUG, INFO, WARNING, ERROR
+LOG_LEVEL=INFO
+# Longueur max de preview des prompts dans les logs
+LOG_REQUEST_PREVIEW_CHARS=180
+# Longueur max de preview des réponses dans les logs
+LOG_RESPONSE_PREVIEW_CHARS=240
+# true pour logger le payload complet reçu (attention données sensibles)
+LOG_RAW_PAYLOAD=false
+
 # Sécurité (optionnel mais recommandé)
 RUNPOD_API_KEY=your_secret_key
 ```
